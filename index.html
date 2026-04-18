@@ -281,7 +281,7 @@
     lines.forEach(line => {
       const d = parseInt(line.dataset.delay) || 0;
       if (d > lastDelay) lastDelay = d;
-      setTimeout(() => line.classList.add('visible'), d + 3000);
+      setTimeout(() => line.classList.add('visible'), d + 5000);
     });
     setTimeout(() => document.getElementById('finalDate').classList.add('visible'), lastDelay + 2800);
 
