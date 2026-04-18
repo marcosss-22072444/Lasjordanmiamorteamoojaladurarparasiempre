@@ -156,7 +156,7 @@
       color: rgba(255, 220, 220, 0.92);
       line-height: 1.85; letter-spacing: 0.02em;
       opacity: 0; transform: translateY(18px);
-      transition: opacity 0.9s ease, transform 0.9s ease;
+      transition: opacity 1.1s ease, transform 1.1s ease;
       margin-bottom: 2px;
       text-shadow: 0 0 20px rgba(192,57,43,0.4);
     }
@@ -281,7 +281,7 @@
     lines.forEach(line => {
       const d = parseInt(line.dataset.delay) || 0;
       if (d > lastDelay) lastDelay = d;
-      setTimeout(() => line.classList.add('visible'), d + 1600);
+      setTimeout(() => line.classList.add('visible'), d + 3000);
     });
     setTimeout(() => document.getElementById('finalDate').classList.add('visible'), lastDelay + 2800);
 
