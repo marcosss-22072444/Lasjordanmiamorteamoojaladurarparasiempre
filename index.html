@@ -81,7 +81,7 @@
       box-shadow: 0 0 50px rgba(192,57,43,0.9), 0 0 90px rgba(139,0,0,0.4);
     }
 
-    /* Hidden YouTube */
+    /* Hidden YouTube — preloaded muted so it's ready instantly */
     #yt-player {
       position: fixed; top: -9999px; left: -9999px;
       width: 1px; height: 1px; opacity: 0; pointer-events: none;
@@ -195,7 +195,7 @@
 </head>
 <body>
 
-  <!-- Overlay original -->
+  <!-- Overlay -->
   <div id="startOverlay">
     <div class="start-box">
       <span class="start-rose">🌹</span>
@@ -204,6 +204,7 @@
     </div>
   </div>
 
+  <!-- YouTube preloaded MUTED — will unmute instantly on tap -->
   <iframe id="yt-player"
     src="https://www.youtube.com/embed/ilOUhsi_ch8?autoplay=1&mute=1&controls=0&loop=1&playlist=ilOUhsi_ch8&enablejsapi=1"
     allow="autoplay; encrypted-media"
@@ -227,22 +228,20 @@
       <div class="divider-line" style="transform:scaleX(-1)"></div>
     </div>
 
-    <!-- Tu letra exacta original con marcadores de tiempo fijados con la canción -->
     <div class="lyrics">
-      <span class="lyric-line stanza-break" data-time="15200">Te conocí, te llevé pa' la playa</span>
-      <span class="lyric-line stanza-break" data-time="18900">solo pa' darte to'a mojada en toalla</span>
+      <span class="lyric-line stanza-break" data-delay="200">Te conocí, te llevé pa' la playa</span>
+      <span class="lyric-line stanza-break" data-delay="900">solo pa' darte to'a mojada en toalla</span>
 
-      <span class="lyric-line stanza-break" data-time="22400">Tiene' un par de enemiga' oculta'</span>
-      <span class="lyric-line" data-time="25300">porque tú estás rica</span>
-      <span class="lyric-line stanza-break" data-time="27100">Eso no es tu culpa</span>
+      <span class="lyric-line stanza-break" data-delay="1800">Tiene' un par de enemiga' oculta'</span>
+      <span class="lyric-line stanza-break" data-delay="2500">porque tú estás rica</span>
+      <span class="lyric-line stanza-break" data-delay="3200">Eso no es tu culpa</span>
 
-      <span class="lyric-line stanza-break" data-time="29200">Todavía no te has ido, y ya yo quiero verte otra ve'</span>
-      <span class="lyric-line stanza-break" data-time="33600">antes que tú te vaya'</span>
+      <span class="lyric-line stanza-break" data-delay="4200">Todavía no te has ido, y ya yo quiero verte otra ve'</span>
+      <span class="lyric-line stanza-break" data-delay="5000">antes que tú te vaya'</span>
 
-      <span class="lyric-line" data-time="36000">No me traicione', nunca me cruce' esa raya</span>
+      <span class="lyric-line" data-delay="6000">No me traicione', nunca me cruce' esa raya</span>
     </div>
 
-    <!-- Tu bloque final original intacto -->
     <div class="final-date" id="finalDate">
       <span class="heart-icon">🤍</span>
       <span class="date-text">&nbsp;16 julio 2024&nbsp;</span>
@@ -251,6 +250,7 @@
   </div>
 
   <script>
+    // YouTube IFrame API
     var tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     document.head.appendChild(tag);
@@ -262,7 +262,7 @@
       });
     };
 
-    // Pétalos originales intactos
+    // Petals
     const petalsEl = document.getElementById('petals');
     for (let i = 0; i < 22; i++) {
       const p = document.createElement('div');
@@ -275,37 +275,18 @@
       petalsEl.appendChild(p);
     }
 
-    // ARREGLO DE COORDINACIÓN: Compara el tiempo real del audio
-    const lines = document.querySelectorAll('.lyric-line');
-    function chequearSincronizacion() {
-      if (!ytPlayer || !ytPlayer.getCurrentTime) return;
-      
-      const tiempoActual = ytPlayer.getCurrentTime() * 1000;
-
-      lines.forEach(line => {
-        const tiempoLetra = parseInt(line.dataset.time) || 0;
-        if (tiempoActual >= tiempoLetra) {
-          line.classList.add('visible');
-        }
-      });
-
-      // Muestra la fecha exacta en el segundo 41 de reproducción real
-      if (tiempoActual >= 41000) {
-        document.getElementById('finalDate').classList.add('visible');
-      }
-    }
-
+    // Start button — unmute instantly (video already loaded)
     const overlay  = document.getElementById('startOverlay');
     const playerEl = document.getElementById('yt-player');
     const musicBtn = document.getElementById('musicBtn');
     let playing = false;
-    let intervaloLetras;
 
     document.getElementById('startBtn').addEventListener('click', () => {
+      // Use API if ready, fallback to postMessage
       if (ytPlayer && ytPlayer.unMute) {
         ytPlayer.unMute();
         ytPlayer.setVolume(100);
-        ytPlayer.playVideo();
+        ytPlayer.playVideo(); // Asegura el arranque limpio de la pista
       } else {
         playerEl.contentWindow.postMessage(
           JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*'
@@ -318,10 +299,18 @@
       overlay.classList.add('hidden');
       setTimeout(() => overlay.remove(), 850);
 
-      // El reloj de las letras se activa aquí, ligado exclusivamente a la música
-      intervaloLetras = setInterval(chequearSincronizacion, 100);
+      // CORRECCIÓN AQUÍ: Los tiempos de la letra arrancan SÓLO cuando se pulsa el botón "Abrir"
+      const lines = document.querySelectorAll('.lyric-line');
+      let lastDelay = 0;
+      lines.forEach(line => {
+        const d = parseInt(line.dataset.delay) || 0;
+        if (d > lastDelay) lastDelay = d;
+        setTimeout(() => line.classList.add('visible'), d + 3700);
+      });
+      setTimeout(() => document.getElementById('finalDate').classList.add('visible'), lastDelay + 2800);
     });
 
+    // Pause / resume
     musicBtn.addEventListener('click', () => {
       if (ytPlayer && ytPlayer.pauseVideo) {
         playing ? ytPlayer.pauseVideo() : ytPlayer.playVideo();
