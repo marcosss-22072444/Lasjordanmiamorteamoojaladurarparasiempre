@@ -195,6 +195,7 @@
 </head>
 <body>
 
+  <!-- Overlay -->
   <div id="startOverlay">
     <div class="start-box">
       <span class="start-rose">🌹</span>
@@ -203,6 +204,7 @@
     </div>
   </div>
 
+  <!-- YouTube preloaded MUTED — will unmute instantly on tap -->
   <iframe id="yt-player"
     src="https://www.youtube.com/embed/ilOUhsi_ch8?autoplay=1&mute=1&controls=0&loop=1&playlist=ilOUhsi_ch8&enablejsapi=1"
     allow="autoplay; encrypted-media"
@@ -227,17 +229,17 @@
     </div>
 
     <div class="lyrics">
-      <span class="lyric-line stanza-break" data-delay="0">Te conocí, te llevé pa' la playa</span>
-      <span class="lyric-line stanza-break" data-delay="700">solo pa' darte to'a mojada en toalla</span>
+      <span class="lyric-line stanza-break" data-delay="200">Te conocí, te llevé pa' la playa</span>
+      <span class="lyric-line stanza-break" data-delay="900">solo pa' darte to'a mojada en toalla</span>
 
-      <span class="lyric-line stanza-break" data-delay="1400">Tiene' un par de enemiga' oculta'</span>
-      <span class="lyric-line stanza-break" data-delay="2100">porque tú estás rica</span>
-      <span class="lyric-line stanza-break" data-delay="2800">Eso no es tu culpa</span>
+      <span class="lyric-line stanza-break" data-delay="1800">Tiene' un par de enemiga' oculta'</span>
+      <span class="lyric-line stanza-break" data-delay="2500">porque tú estás rica</span>
+      <span class="lyric-line stanza-break" data-delay="3200">Eso no es tu culpa</span>
 
-      <span class="lyric-line stanza-break" data-delay="3800">Todavía no te has ido, y ya yo quiero verte otra ve'</span>
-      <span class="lyric-line stanza-break" data-delay="4600">antes que tú te vaya'</span>
+      <span class="lyric-line stanza-break" data-delay="4200">Todavía no te has ido, y ya yo quiero verte otra ve'</span>
+      <span class="lyric-line stanza-break" data-delay="5000">antes que tú te vaya'</span>
 
-      <span class="lyric-line" data-delay="5600">No me traicione', nunca me cruce' esa raya</span>
+      <span class="lyric-line" data-delay="6000">No me traicione', nunca me cruce' esa raya</span>
     </div>
 
     <div class="final-date" id="finalDate">
@@ -267,3 +269,62 @@
       p.className = 'petal';
       p.style.left   = Math.random() * 100 + 'vw';
       p.style.animationDuration = (6 + Math.random() * 10) + 's';
+      p.style.animationDelay   = (Math.random() * 14) + 's';
+      p.style.width  = (5 + Math.random() * 8) + 'px';
+      p.style.height = (7 + Math.random() * 12) + 'px';
+      petalsEl.appendChild(p);
+    }
+
+    // Start button — unmute instantly and trigger animation
+    const overlay  = document.getElementById('startOverlay');
+    const playerEl = document.getElementById('yt-player');
+    const musicBtn = document.getElementById('musicBtn');
+    let playing = false;
+
+    document.getElementById('startBtn').addEventListener('click', () => {
+      if (ytPlayer && ytPlayer.unMute) {
+        ytPlayer.unMute();
+        ytPlayer.setVolume(100);
+        ytPlayer.playVideo();
+      } else {
+        playerEl.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*'
+        );
+        playerEl.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*'
+        );
+      }
+      playing = true;
+      overlay.classList.add('hidden');
+      setTimeout(() => overlay.remove(), 850);
+
+      // --- CORREGIDO AQUÍ: Eliminados los 3700ms sobrantes ---
+      const lines = document.querySelectorAll('.lyric-line');
+      let lastDelay = 0;
+      lines.forEach(line => {
+        const d = parseInt(line.dataset.delay) || 0;
+        if (d > lastDelay) lastDelay = d;
+        // Ahora arranca directamente con el delay original
+        setTimeout(() => line.classList.add('visible'), d);
+      });
+      
+      // La fecha aparece al final de forma fluida
+      setTimeout(() => document.getElementById('finalDate').classList.add('visible'), lastDelay + 800);
+    });
+
+    // Pause / resume
+    musicBtn.addEventListener('click', () => {
+      if (ytPlayer && ytPlayer.pauseVideo) {
+        playing ? ytPlayer.pauseVideo() : ytPlayer.playVideo();
+      } else {
+        const cmd = playing ? 'pauseVideo' : 'playVideo';
+        playerEl.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func: cmd, args: [] }), '*'
+        );
+      }
+      musicBtn.textContent = playing ? '▶️' : '🎵';
+      playing = !playing;
+    });
+  </script>
+</body>
+</html>
