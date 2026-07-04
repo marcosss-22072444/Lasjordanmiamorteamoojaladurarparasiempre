@@ -275,16 +275,6 @@
       petalsEl.appendChild(p);
     }
 
-    // Lyrics
-    const lines = document.querySelectorAll('.lyric-line');
-    let lastDelay = 0;
-    lines.forEach(line => {
-      const d = parseInt(line.dataset.delay) || 0;
-      if (d > lastDelay) lastDelay = d;
-      setTimeout(() => line.classList.add('visible'), d + 3700);
-    });
-    setTimeout(() => document.getElementById('finalDate').classList.add('visible'), lastDelay + 2800);
-
     // Start button — unmute instantly (video already loaded)
     const overlay  = document.getElementById('startOverlay');
     const playerEl = document.getElementById('yt-player');
@@ -296,14 +286,28 @@
       if (ytPlayer && ytPlayer.unMute) {
         ytPlayer.unMute();
         ytPlayer.setVolume(100);
+        ytPlayer.playVideo(); // Asegura el arranque limpio de la pista
       } else {
         playerEl.contentWindow.postMessage(
           JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*'
+        );
+        playerEl.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*'
         );
       }
       playing = true;
       overlay.classList.add('hidden');
       setTimeout(() => overlay.remove(), 850);
+
+      // CORRECCIÓN AQUÍ: Los tiempos de la letra arrancan SÓLO cuando se pulsa el botón "Abrir"
+      const lines = document.querySelectorAll('.lyric-line');
+      let lastDelay = 0;
+      lines.forEach(line => {
+        const d = parseInt(line.dataset.delay) || 0;
+        if (d > lastDelay) lastDelay = d;
+        setTimeout(() => line.classList.add('visible'), d + 3700);
+      });
+      setTimeout(() => document.getElementById('finalDate').classList.add('visible'), lastDelay + 2800);
     });
 
     // Pause / resume
@@ -322,4 +326,3 @@
   </script>
 </body>
 </html>
-
